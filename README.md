@@ -21,6 +21,7 @@ that has already been created, simply remove the references to Vagrant.
 	- `git clone git@github.com:dmuth/splunk-modem-monitor.git`
 - Start Vagrant with `vagrant up`
 - SSH into the Vagrant instance with `vagrant ssh`
+- Install PHP with `sudo apt-get update && sudo apt-get -y install php5-cli php5-curl`
 - Install Splunk with `sudo /vagrant/bin/install_splunk.sh`
     - Agree to the license and then watch Spkunk start
     - Not that you'll need a Splunk .deb file named `splunk.deb` in the current directory
