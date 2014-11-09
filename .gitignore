@@ -15,3 +15,5 @@ splunk*
 #
 *.swp
 
+arris-event.log
+
