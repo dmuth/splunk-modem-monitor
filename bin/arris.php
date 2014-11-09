@@ -11,6 +11,8 @@ $config = array();
 //
 $config["url"] = "http://192.168.100.1/cgi-bin/status_cgi";
 //$config["url"] = "http://10.255.0.1/"; // Debugging
+$config["url_event_log"] = "http://192.168.100.1/cgi-bin/event_cgi";
+//$config["url_event_log"] = "http://10.255.0.1"; // Debugging
 $config["timeout"] = 5;
 
 $config["sleep"] = 10;
@@ -27,20 +29,20 @@ $config["event_log"] = dirname(__FILE__) . "/../arris-event.log";
 /**
 * Read the contents of our status page from the modem.
 */
-function readStatus($config) {
+function readFromUrl($url, $timeout) {
 
 	$retval = "";
 
 	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL, $config["url"]);
+	curl_setopt($ch, CURLOPT_URL, $url);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-	curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $config["timeout"]);
+	curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
 	$retval = curl_exec($ch);
 	curl_close($ch);
 
 	return($retval);
 
-} // End of readStatus()
+} // End of readFromUrl()
 
 
 /**
@@ -224,7 +226,7 @@ function convertArrayToKeyValue($data) {
 function _mainStats($config) {
 
 	$retval = "";
-	$html = readStatus($config);
+	$html = readFromUrl($config["url"], $config["timeout"]);
 
 	if (!$html) {
 		throw new Exception("No HTML was returned from URL '". $config["url"] . "'");
@@ -316,7 +318,6 @@ function readLastLogLineFromFile($file) {
 * Read our event log from the modem.
 */
 function readEventLogFromModem() {
-// fopen a
 } // End of readEventLogFromModem()
 
 
@@ -345,6 +346,7 @@ TODO:
 readLogFromModem()
 truncateEventLog()
 writeLogToFile()
+	fopen a
 function convertInnerArrayToKeyValue($data, $type) {
 */
 } // End of _mainEventLog()
