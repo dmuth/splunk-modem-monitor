@@ -73,9 +73,12 @@ function parseStatus($html) {
 			$row = array();
 			$row["name"] = $values[0];
 			$row["dcid"] = $values[1];
-			$row["freq"] = $values[2];
-			$row["power"] = $values[3];
-			$row["snr"] = $values[4];
+			$row["freq_raw"] = $values[2];
+			$row["freq"] = floatval($row["freq_raw"]);
+			$row["power_raw"] = $values[3];
+			$row["power"] = floatval($row["power_raw"]);
+			$row["snr_raw"] = $values[4];
+			$row["snr"] = floatval($row["snr_raw"]);
 			$row["modulation"] = $values[5];
 			$row["octets"] = $values[6];
 			$row["correcteds"] = $values[7];
@@ -86,10 +89,13 @@ function parseStatus($html) {
 			$row = array();
 			$row["name"] = $values[0];
 			$row["ucid"] = $values[1];
-			$row["freq"] = $values[2];
-			$row["power"] = $values[3];
+			$row["freq_raw"] = $values[2];
+			$row["freq"] = floatval($row["freq_raw"]);
+			$row["power_raw"] = $values[3];
+			$row["power"] = floatval($row["power_raw"]);
 			$row["channel_type"] = $values[4];
-			$row["symbol_rate"] = $values[5];
+			$row["symbol_rate_raw"] = $values[5];
+			$row["symbol_rate"] = floatval($row["symbol_rate_raw"]);
 			$row["modulation"] = $values[6];
 			$retval["upstream"][] = $row;
 
@@ -153,12 +159,13 @@ function convertArrayToKeyValue($data) {
 
 		foreach ($value as $key2 => $value2) {
 
-			$line = gmdate("Ymd\THis") . "\t";
+			$line = gmdate("Y/m/d\ H:i:s") . "\t";
 
 			foreach ($value2 as $key3 => $value3) {
 				$line .= "${key3}=\"${value3}\"\t";
 			}
 
+			$line .= "type=\"${key}\"\t";
 			$line .= "pid=${pid}\n";
 			$retval .= $line;
 
@@ -203,6 +210,7 @@ function main($config) {
 	for ($i=0; $i<$config["num_loops"]; $i++) {
 		$output = _main($config);
 		print $output;
+		//print "Sleeping for ${config["sleep"]} seconds..\n"; // Debugging
 		sleep($config["sleep"]);
 	}
 
