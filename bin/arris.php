@@ -313,6 +313,8 @@ function readLastLogLineFromFile($file) {
 
 // TODO: I need to actually read the last line of the file here. 
 // But first I need to write the code that writes to the file. (chicken and egg problem)
+// Be sure to rtrim() that line!
+//$value = preg_replace("/[^\t]+\t/", "", $value, 1);
 
 	if (!fclose($fp)) {
 		throw new Exception("Unable to close Event Log '${file}'!");
@@ -379,14 +381,122 @@ function readEventLogFromModem($config) {
 
 	}
 
-//print_r($rows);
-	$lines = convertInnerArrayToKeyValue($rows, "event_log");
-//print $lines;
+	$retval = convertInnerArrayToKeyValue($rows, "event_log");
 
 	return($retval);
 
 } // End of readEventLogFromModem()
 
+
+/**
+* Unlike _mainEventLog(), I *ASSURE YOU* that this function is complicated. ;-)
+*
+* What we're going to do is take the lines we just read from the modem and 
+* work our way through them. The moment we find a line which matches the 
+* last line in the stored Event Log file on our disk, we discard everything 
+* read up to that point, because we already have it in our log.  Then we 
+* take what's left, and return that, as it needs to be written to our 
+* logfile on disk.
+*
+* @param {string} $lines The lines we received from the modem, 
+*	in key/value format.
+*
+* @param {string} $last_line The last line inthe Event Log file. This may be an empty string!
+*
+* @return {string} A multi-line string of line that we want to
+*	write to the Event Log file. This may be an empty string!
+*
+*/
+function truncateEventLogLines($lines, $last_line) {
+
+	$retval = "";
+
+	//
+	// No last line? Full stop.
+	//
+	if (!$last_line) {
+		$retval = $lines;
+		return($retval);
+	}
+
+	$match_found = false;
+	$stop_match_checking = false;
+
+	//
+	// No last line found due to an empty Event Log file? Don't even 
+	// bother checking.
+	//
+	if (!$last_line) {
+		$stop_match_checking = true;
+	}
+
+	//
+	// Turn our lines into an array and remove the last (empty) element.
+	//
+	$lines_array = split("\n", $lines);
+	array_pop($lines_array);
+
+	foreach ($lines_array as $key => $value) {
+
+		if (!$stop_match_checking) {
+			//
+			// If we're checking, remove the leading date and the trailing PID
+			//
+			$stripped = preg_replace("/[^\t]+\t/", "", $value, 1);
+			$stripped = preg_replace("/\tpid=.*/", "", $stripped);
+
+			//
+			// If this matches the last line in the logfile, make a note and stop checking.
+			//
+			if ($stripped == $last_line) {
+				$match_found = true;
+				$stop_match_checking = true;
+			}
+
+			//
+			// If we didn't find a match, this line goes into the return value.
+			// If we DID find a match, however, wipe the return value.  
+			// Everything after this line is eligible for the logfile, though.
+			//
+			if (!$match_found) {
+				$retval .= $value . "\n";
+			} else {
+				$retval = "";
+			}
+
+		} else {
+			$retval .= $value . "\n";
+
+		}
+
+	}
+
+	return($retval);
+
+} // End of truncatEventLogLines()
+
+
+/**
+* Write our lines from the Event Log to the file.
+*
+*/
+function writeEventLogToFile($lines, $file) {
+
+	$fp = fopen($file, "a");
+	if (!$fp) {
+		throw new Exception("Unable to open Event Log '${file}' for writing");
+	}
+
+	$bytes_written = fwrite($fp, $lines);
+	if (!$bytes_written) {
+		throw new Exception("Only ${bytes_written} bytes were written to file '${file}'!");
+	}
+
+	if (!fclose($fp)) {
+		throw new Exception("Unable to close Event Log '${file}'!");
+	}
+
+} // End of writeEventLogToFile()
 
 
 /**
@@ -407,15 +517,10 @@ function _mainEventLog($config) {
 
 	$lines = readEventLogFromModem($config);
 
-// event_log
-/*10
-TODO:
-readLogFromModem()
-truncateEventLog()
-writeLogToFile()
-	fopen a
-function convertInnerArrayToKeyValue($data, $type) {
-*/
+	$lines = truncateEventLogLines($lines, $last_line);
+
+	writeEventLogToFile($lines, $config["event_log"]);
+
 } // End of _mainEventLog()
 
 
@@ -436,8 +541,8 @@ function main($config) {
 			// Fetch the stats and print them on stdout
 			//
 // TEST
-			$output = _mainStats($config);
-			print $output;
+			//$output = _mainStats($config);
+			//print $output;
 			//print "Sleeping for ${config["sleep"]} seconds..\n"; // Debugging
 
 			//
