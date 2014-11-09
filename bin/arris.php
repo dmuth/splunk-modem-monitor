@@ -9,7 +9,8 @@ $config = array();
 //
 // The URL of the modem's status page
 //
-$config["url"] = "http://192.168.100.1/cgi-bin/status_cgi";
+//$config["url"] = "http://192.168.100.1/cgi-bin/status_cgi";
+//$config["url"] = "http://10.255.0.1/"; // Debugging
 $config["timeout"] = 5;
 $config["sleep"] = 10;
 $config["num_loops"] = 10;
