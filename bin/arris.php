@@ -12,8 +12,9 @@ $config = array();
 $config["url"] = "http://192.168.100.1/cgi-bin/status_cgi";
 //$config["url"] = "http://10.255.0.1/"; // Debugging
 $config["timeout"] = 5;
-//$config["sleep"] = 10;
-$config["sleep"] = 10; // Debugging
+
+$config["sleep"] = 10;
+//$config["sleep"] = 1; // Debugging
 //$config["num_loops"] = 10;
 $config["num_loops"] = 1; // Debugging
 
@@ -217,25 +218,38 @@ function main($config) {
 	// every few seconds.
 	//
 	for ($i=0; $i<$config["num_loops"]; $i++) {
-		$output = _main($config);
-		print $output;
-		//print "Sleeping for ${config["sleep"]} seconds..\n"; // Debugging
+
+		try {
+			$output = _main($config);
+			print $output;
+			//print "Sleeping for ${config["sleep"]} seconds..\n"; // Debugging
+
+/*
+TODO:
+_main_log()
+readLastLogLineFromFile()
+	is_file()
+	is_writable()
+readLogFromModem()
+writeLogToFile()
+*/
+
+		} catch (Exception $e) {
+			$error = $e->getMessage() . ": " . $e->getTraceAsString();
+			$error = str_replace("\r", " ", $error);
+			$error = str_replace("\n", " ", $error);
+			print "error=\"" . $error ."\"\n";
+
+		}
+
 		sleep($config["sleep"]);
+
 	}
 
 } // End of main()
 
 
-try {
-	main($config);
-
-} catch (Exception $e) {
-	$error = $e->getMessage() . ": " . $e->getTraceAsString();
-	$error = str_replace("\r", " ", $error);
-	$error = str_replace("\n", " ", $error);
-	print "error=\"" . $error ."\"\n";
-
-}
+main($config);
 
 
 
