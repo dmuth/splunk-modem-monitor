@@ -12,8 +12,10 @@ $config = array();
 $config["url"] = "http://192.168.100.1/cgi-bin/status_cgi";
 //$config["url"] = "http://10.255.0.1/"; // Debugging
 $config["timeout"] = 5;
-$config["sleep"] = 10;
-$config["num_loops"] = 10;
+//$config["sleep"] = 10;
+$config["sleep"] = 10; // Debugging
+//$config["num_loops"] = 10;
+$config["num_loops"] = 1; // Debugging
 
 
 /**
@@ -83,7 +85,12 @@ function parseStatus($html) {
 			$row["modulation"] = $values[5];
 			$row["octets"] = $values[6];
 			$row["correcteds"] = $values[7];
+			//$row["correcteds"] = time() * 1000  + rand(0, 999); // Debugging
+			//$row["correcteds"] = time() * 1000; // Debugging
 			$row["uncorrectables"] = $values[8];
+			//$row["uncorrectables"] = time() * 1000 + rand(0, 999); // Debugging
+			//$row["uncorrectables"] = time() * 1000; // Debugging
+
 			$retval["downstream"][] = $row;
 
 		} else if (strstr($values[0], "Upstream")) {		
@@ -98,6 +105,7 @@ function parseStatus($html) {
 			$row["symbol_rate_raw"] = $values[5];
 			$row["symbol_rate"] = floatval($row["symbol_rate_raw"]);
 			$row["modulation"] = $values[6];
+
 			$retval["upstream"][] = $row;
 
 		} else if (strstr($values[0], "System Uptime")) {
