@@ -311,10 +311,32 @@ function readLastLogLineFromFile($file) {
 		throw new Exception("Unable to open Event Log '${file}' for writing");
 	}
 
-// TODO: I need to actually read the last line of the file here. 
-// But first I need to write the code that writes to the file. (chicken and egg problem)
-// Be sure to rtrim() that line!
-//$value = preg_replace("/[^\t]+\t/", "", $value, 1);
+	//
+	// Start reading 10,000 bytes from the end of the file.  Based on what 
+	// I've seen from Arris modems, that should be plenty far back.
+	//
+	$index = filesize($file);
+	$index -= 10000;
+	if ($index < 0) {
+		$index = 0;
+	}
+
+	if (fseek($fp, $index) == -1) {
+		throw new Exception("Unable to seek to index ${index} in file ${file}!");
+	}
+
+	$last_line = "";
+	while ($line = fgets($fp)) {
+		$last_line = $line;
+	}
+
+	//
+	// Remove the leading datestamp and trailing PID and newline just like 
+	// we're going to do in truncateEventLogLines().
+	//
+	$last_line = preg_replace("/[^\t]+\t/", "", $last_line, 1);
+	$last_line = preg_replace("/\tpid=.*/", "", $last_line);
+	$retval = rtrim($last_line);
 
 	if (!fclose($fp)) {
 		throw new Exception("Unable to close Event Log '${file}'!");
@@ -519,7 +541,9 @@ function _mainEventLog($config) {
 
 	$lines = truncateEventLogLines($lines, $last_line);
 
-	writeEventLogToFile($lines, $config["event_log"]);
+	if ($lines) {
+		writeEventLogToFile($lines, $config["event_log"]);
+	}
 
 } // End of _mainEventLog()
 
@@ -540,9 +564,8 @@ function main($config) {
 			//
 			// Fetch the stats and print them on stdout
 			//
-// TEST
-			//$output = _mainStats($config);
-			//print $output;
+			$output = _mainStats($config);
+			print $output;
 			//print "Sleeping for ${config["sleep"]} seconds..\n"; // Debugging
 
 			//
