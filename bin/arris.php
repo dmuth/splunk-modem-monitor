@@ -11,12 +11,14 @@ $config = array();
 //
 $config["url"] = "http://192.168.100.1/cgi-bin/status_cgi";
 $config["timeout"] = 5;
+$config["sleep"] = 10;
+$config["num_loops"] = 10;
 
 
 /**
 * Read the contents of our status page from the modem.
 */
-function readStatusFromModem($config) {
+function readStatus($config) {
 
 	$retval = "";
 
@@ -29,7 +31,163 @@ function readStatusFromModem($config) {
 
 	return($retval);
 
-} // End of readFromModem()
+} // End of readStatus()
+
+
+/**
+* Parse our HTML and retrieve information from the status page
+*/
+function parseStatus($html) {
+
+	$retval = array();
+	$retval["downstream"] = array();
+	$retval["upstream"] = array();
+	$retval["status"] = array();
+	$retval["interface"] = array();
+
+	$dom = new DOMDocument();
+
+	//
+	// Parse the HTML, suppressing any warnings because of invalid HTML.
+	//
+	@$dom->loadHTML($html);
+
+	$trs = $dom->getElementsByTagName("tr");
+
+	//
+	// Loop through our <tr> tags, then our <td> tags.
+	//
+	foreach ($trs as $tr) {
+
+		$tds = $tr->getElementsByTagName("td");
+		$values = array();
+		foreach ($tds as $td) {
+			$values[] = $td->nodeValue;
+		}
+
+		//
+		// For each grouping of <td> tags, determine what type of data 
+		// it is (if any), and store it in the appropriate array.
+		//
+		if (strstr($values[0], "Downstream")) {
+			$row = array();
+			$row["name"] = $values[0];
+			$row["dcid"] = $values[1];
+			$row["freq"] = $values[2];
+			$row["power"] = $values[3];
+			$row["snr"] = $values[4];
+			$row["modulation"] = $values[5];
+			$row["octets"] = $values[6];
+			$row["correcteds"] = $values[7];
+			$row["uncorrectables"] = $values[8];
+			$retval["downstream"][] = $row;
+
+		} else if (strstr($values[0], "Upstream")) {		
+			$row = array();
+			$row["name"] = $values[0];
+			$row["ucid"] = $values[1];
+			$row["freq"] = $values[2];
+			$row["power"] = $values[3];
+			$row["channel_type"] = $values[4];
+			$row["symbol_rate"] = $values[5];
+			$row["modulation"] = $values[6];
+			$retval["upstream"][] = $row;
+
+		} else if (strstr($values[0], "System Uptime")) {
+			$row = array();
+			$row["system_uptime"] = $values[1];
+			$retval["status"][] = $row;
+
+		} else if (strstr($values[0], "CM Status")) {
+			$row = array();
+			$row["cm_status"] = $values[1];
+			$retval["status"][] = $row;
+
+		} else if (strstr($values[0], "Time and Date")) {
+			$row = array();
+			$row["time_and_date"] = $values[1];
+			$retval["status"][] = $row;
+
+		} else if (
+			strstr($values[0], "LAN Port")
+			|| strstr($values[0], "CABLE")
+			|| strstr($values[0], "MTA")
+			) {
+			$row = array();
+			$row["name"] = $values[0];
+			$row["provisioned"] = $values[1];
+			$row["state"] = $values[2];
+			$row["speed_mbps"] = $values[3];
+			$row["mac_address"] = $values[4];
+			$retval["interface"][] = $row;
+
+		} else {
+			//
+			// This is an unknown value.
+			// For now, we're doing nothing, since it's probably spacing between 
+			// tables or similar.
+			//
+
+		}
+
+	}
+
+	return($retval);
+
+} // End of parseStatus()
+
+
+/**
+* This function converts our gaint array of data to key/value pairs 
+* that Splunk can handle.
+*
+*
+* @return {string} A giant multi-line string of key/value pairs.
+*/
+function convertArrayToKeyValue($data) {
+
+	$retval = "";
+	$pid = getmypid();
+
+	foreach ($data as $key => $value) {
+
+		foreach ($value as $key2 => $value2) {
+
+			$line = gmdate("Ymd\THis") . "\t";
+
+			foreach ($value2 as $key3 => $value3) {
+				$line .= "${key3}=\"${value3}\"\t";
+			}
+
+			$line .= "pid=${pid}\n";
+			$retval .= $line;
+
+		}
+	}
+
+	return($retval);
+
+} // End of convertArrayToKeyValue()
+
+
+/**
+* This function is called repeatedly by main(), and does most of our work.
+*/
+function _main($config) {
+
+	$retval = "";
+	$html = readStatus($config);
+
+	if (!$html) {
+		throw new Exception("No HTML was returned from URL '". $config["url"] . "'");
+	}
+
+	$status = parseStatus($html);
+	$retval = convertArrayToKeyValue($status);
+
+	return($retval);
+
+} // End of _main()
 
 
 /**
@@ -37,25 +195,16 @@ function readStatusFromModem($config) {
 */
 function main($config) {
 
-	$html = readStatusFromModem($config);
-
-	if (!$html) {
-		throw new Exception("No HTML was returned from URL '". $config["url"] . "'");
+	//
+	// Loop a prescribed number of times and then exit.
+	// This is to keep Splunk from having to spawn a new PHP instance 
+	// every few seconds.
+	//
+	for ($i=0; $i<$config["num_loops"]; $i++) {
+		$output = _main($config);
+		print $output;
+		sleep($config["sleep"]);
 	}
-print $html;
-
-// parseDownstream()
-// parseUpstream()
-// parseStatus()
-// parseInterfaces()
-
-/*
-TODO:
-- test timeouts
-- test parsing
-- check delta command?
-	- debugging switches for counters
-*/
 
 } // End of main()
 
