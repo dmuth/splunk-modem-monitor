@@ -15,8 +15,13 @@ $config["timeout"] = 5;
 
 $config["sleep"] = 10;
 //$config["sleep"] = 1; // Debugging
-//$config["num_loops"] = 10;
-$config["num_loops"] = 1; // Debugging
+$config["num_loops"] = 10;
+//$config["num_loops"] = 1; // Debugging
+
+//
+// Where will we write the Event Log?
+//
+$config["event_log"] = dirname(__FILE__) . "/../arris-event.log";
 
 
 /**
@@ -154,6 +159,44 @@ function parseStatus($html) {
 
 
 /**
+*
+* Convert an "inner" array, where each element corresponds to a specific 
+* event line which contains an array of key/value combinations, into a 
+* string.  The reason for this funciton is because this logic is used 
+* by both the parts of this progrma which read the modem data as well 
+* as the parts that read the Event Log. (DRY Principle)
+*
+* @return {string} A multi-line string of key/value pairs
+*/
+function convertInnerArrayToKeyValue($data, $type) {
+
+	$retval = "";
+	$pid = getmypid();
+
+	foreach ($data as $key => $value) {
+
+		$line = gmdate("Y/m/d\ H:i:s") . "\t";
+
+		foreach ($value as $key2 => $value2) {
+			$line .= "${key2}=\"${value2}\"\t";
+		}
+
+		if ($type) {
+			$line .= "type=\"${type}\"\t";
+		}
+
+		$line .= "pid=${pid}\n";
+
+		$retval .= $line;
+
+	}
+
+	return($retval);
+
+} // End of convertInnerArrayToKeyValue()
+
+
+/**
 * This function converts our gaint array of data to key/value pairs 
 * that Splunk can handle.
 *
@@ -163,23 +206,11 @@ function parseStatus($html) {
 function convertArrayToKeyValue($data) {
 
 	$retval = "";
-	$pid = getmypid();
 
 	foreach ($data as $key => $value) {
 
-		foreach ($value as $key2 => $value2) {
+		$retval .= convertInnerArrayToKeyValue($value, $key);
 
-			$line = gmdate("Y/m/d\ H:i:s") . "\t";
-
-			foreach ($value2 as $key3 => $value3) {
-				$line .= "${key3}=\"${value3}\"\t";
-			}
-
-			$line .= "type=\"${key}\"\t";
-			$line .= "pid=${pid}\n";
-			$retval .= $line;
-
-		}
 	}
 
 	return($retval);
@@ -188,9 +219,9 @@ function convertArrayToKeyValue($data) {
 
 
 /**
-* This function is called repeatedly by main(), and does most of our work.
+* Main function to read stats from the modem.
 */
-function _main($config) {
+function _mainStats($config) {
 
 	$retval = "";
 	$html = readStatus($config);
@@ -204,7 +235,119 @@ function _main($config) {
 
 	return($retval);
 
-} // End of _main()
+} // End of _mainSats()
+
+
+/**
+* Sanity check permissions on the Event Log file (if it exists) or the 
+* directory (if it does not).
+*/
+function sanityCheckLogFileAndDirectory($file) {
+
+	//
+	// If our file exists, make sure it is readable and writeable
+	//
+	if (is_file($file)) {
+
+		if (!is_readable($file)) {
+			throw new Exception("Unable to read from Event Log '${file}'!");
+		}
+
+		//
+		// Seems like the best place for this sanity check is next to the 
+		// readable sanity check for the same file, for now.
+		//
+		if (!is_writable($file)) {
+			throw new Exception("Unable to write to Event Log '${file}'!");
+		}
+
+	} else {
+		//
+		// If the file doesn't exist, create it.
+		//
+		$dir = dirname($file);
+		if (!is_writable($dir)) {
+			throw new Exception("Unable to write to directory '${dir}'!");
+		}
+
+	}
+
+} // End of sanityCheckLogFileAndDirectory()
+
+
+/**
+* Read the last log line from our Event Log saved on disk.
+*
+* @param {string} $file The filename to read from. If it does not exist, 
+*	it is created and an empty string is returned.
+*
+* @return {string} The last line of the logfile, which could be an 
+*	empty string.
+*/
+function readLastLogLineFromFile($file) {
+
+	$retval = "";
+
+	sanityCheckLogFileAndDirectory($file);
+
+
+	//
+	// Open the file for reading and writing, place the file pointer 
+	// at the end of the file, create the file if it does not exist.
+	//
+	$fp = fopen($file, "a+");
+	if (!$fp) {
+		throw new Exception("Unable to open Event Log '${file}' for writing");
+	}
+
+// TODO: I need to actually read the last line of the file here. 
+// But first I need to write the code that writes to the file. (chicken and egg problem)
+
+	if (!fclose($fp)) {
+		throw new Exception("Unable to close Event Log '${file}'!");
+	}
+
+	return($retval);
+
+} // End of readLastLogLineFromFile()
+
+
+/**
+* Read our event log from the modem.
+*/
+function readEventLogFromModem() {
+// fopen a
+} // End of readEventLogFromModem()
+
+
+
+/**
+*
+* Fetch the Event Log and write it out to a file that Splunk can then read in.
+* Why do it this way? Because the Event Log rarely changes and we don't 
+* to keep sending the same stuff to Splunk.  Instead, we will look at the last
+* line stored in the logfile and write everything after that from the
+* mode.  It's not as complex as it sounds, I promise. :-)
+*
+*/
+function _mainEventLog($config) {
+
+	//
+	// First step, get the last log line from our file
+	//
+	$last_line = readLastLogLineFromFile($config["event_log"]);
+
+	$lines = readEventLogFromModem();
+
+// event_log
+/*10
+TODO:
+readLogFromModem()
+truncateEventLog()
+writeLogToFile()
+function convertInnerArrayToKeyValue($data, $type) {
+*/
+} // End of _mainEventLog()
 
 
 /**
@@ -220,25 +363,24 @@ function main($config) {
 	for ($i=0; $i<$config["num_loops"]; $i++) {
 
 		try {
-			$output = _main($config);
+			//
+			// Fetch the stats and print them on stdout
+			//
+			$output = _mainStats($config);
 			print $output;
 			//print "Sleeping for ${config["sleep"]} seconds..\n"; // Debugging
 
-/*
-TODO:
-_main_log()
-readLastLogLineFromFile()
-	is_file()
-	is_writable()
-readLogFromModem()
-writeLogToFile()
-*/
+			//
+			// Fetch the Event Log and write it out to a file that Splunk
+			// can then read in
+			//
+			_mainEventLog($config);
 
 		} catch (Exception $e) {
 			$error = $e->getMessage() . ": " . $e->getTraceAsString();
 			$error = str_replace("\r", " ", $error);
 			$error = str_replace("\n", " ", $error);
-			print "error=\"" . $error ."\"\n";
+			print "error=\"" . $error ."\" pid=\"" . getmypid() . "\"\n";
 
 		}
 
