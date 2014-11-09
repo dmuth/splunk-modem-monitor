@@ -58,7 +58,9 @@ Splunk 6.2, in turn, has been tested on Ubuntu 14.04 LTS and Macintosh OS/X 10.8
 ## TODO
 
 Things I might implement in the future:
+
 - Scripts to read the status pages of other modems (if anyone can send me the status pages from other modems, hint hint!)
+- Monitor the PacketCable events. I would need to refactoring the existing Event Log code and probably split it into a spearate PHP script with configuration in a third file.
 
 
     
