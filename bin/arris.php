@@ -46,6 +46,15 @@ function readFromUrl($url, $timeout) {
 
 
 /**
+* Return a timestamp in GMT that Splunk can understand.
+*/
+function getTimeStamp() {
+	$retval = gmdate("Y/m/d\ H:i:s");
+	return($retval);
+} // End of getTimeStamp()
+
+
+/**
 * Parse our HTML and retrieve information from the status page
 */
 function parseStatus($html) {
@@ -177,7 +186,7 @@ function convertInnerArrayToKeyValue($data, $type) {
 
 	foreach ($data as $key => $value) {
 
-		$line = gmdate("Y/m/d\ H:i:s") . "\t";
+		$line = getTimestamp() . "\t";
 
 		foreach ($value as $key2 => $value2) {
 			$line .= "${key2}=\"${value2}\"\t";
@@ -317,7 +326,65 @@ function readLastLogLineFromFile($file) {
 /**
 * Read our event log from the modem.
 */
-function readEventLogFromModem() {
+function readEventLogFromModem($config) {
+
+	$retval = "";
+
+	$html = readFromUrl($config["url_event_log"], $config["timeout"]);
+
+	$dom = new DOMDocument();
+
+	//
+	// Parse the HTML, suppressing any warnings because of invalid HTML.
+	//
+	@$dom->loadHTML($html);
+
+	//
+	// The Event Log is in our second table
+	//
+	$tables = $dom->getElementsByTagName("table");
+	$table = $tables->item(1);
+
+	$trs = $table->getElementsByTagName("tr");
+
+	$rows = array();
+	$skip_first_line = false;
+
+	//
+	// Loop through our rows, skipping the first row (the header)
+	// and pull out the value sfrom each row
+	//
+	foreach ($trs as $tr) {
+
+		if (!$skip_first_line) {
+			$skip_first_line = true;
+			continue;
+		}
+
+		$row = array();
+
+		$tds = $tr->getElementsByTagName("td");
+
+		$values = array();
+		foreach ($tds as $td) {
+			$values[] = $td->nodeValue;
+		}
+
+		$row["date_time"] = $values[0];
+		$row["event_id"] = $values[1];
+		$row["event_level"] = $values[2];
+		$row["description"] = $values[3];
+
+		$rows[] = $row;
+
+	}
+
+//print_r($rows);
+	$lines = convertInnerArrayToKeyValue($rows, "event_log");
+//print $lines;
+
+	return($retval);
+
 } // End of readEventLogFromModem()
 
 
@@ -338,7 +405,7 @@ function _mainEventLog($config) {
 	//
 	$last_line = readLastLogLineFromFile($config["event_log"]);
 
-	$lines = readEventLogFromModem();
+	$lines = readEventLogFromModem($config);
 
 // event_log
 /*10
@@ -368,6 +435,7 @@ function main($config) {
 			//
 			// Fetch the stats and print them on stdout
 			//
+// TEST
 			$output = _mainStats($config);
 			print $output;
 			//print "Sleeping for ${config["sleep"]} seconds..\n"; // Debugging
