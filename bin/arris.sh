@@ -16,5 +16,6 @@ unset LD_LIBRARY_PATH
 pushd `dirname $0` > /dev/null
 
 ./arris.php
+#./arris.php |logger -i -s 2>&1 # Debugging
 
 
