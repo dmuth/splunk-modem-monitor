@@ -22,4 +22,9 @@ modtime = 1415577524.323558000
 
 [nav/default]
 version = 6.2.0
-modtime = 1415578465.080938000
+modtime = 1415579126.537262000
+
+[views/event_log]
+owner = admin
+version = 6.2.0
+modtime = 1415579107.426306000

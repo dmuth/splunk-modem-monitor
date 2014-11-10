@@ -4,7 +4,8 @@
   <view name="upstream_short_term" />
   <view name="downstream_long_term"  />
   <view name="upstream_long_term" />
-
+  <view name="event_log" />
+  
   <collection label="Other Views">
     <view source="unclassified" />
   </collection>
