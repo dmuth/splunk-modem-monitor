@@ -1,5 +1,5 @@
 <dashboard>
-  <label>Upstream</label>
+  <label>Upstream (Short-term)</label>
   <row>
     <panel>
       <chart>
