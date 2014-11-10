@@ -1,10 +1,14 @@
 # Splunk Modem Monitor
 
 
-A Splunk app to monitor your cable modem.  I wrote it due to having some trouble with my cable modem a little while back, as well as to see how the characteristics of the modem's signal can change over time.
+A Splunk app to monitor your cable modem.  I wrote it due to having some trouble with my cable modem a little while back, as well as to see how the characteristics of the modem's frequency user, power, and signal-to-noise ration can change over time.
 
 At present, the Arris TG852G modem is supported.
 
+**tl;dr** Monitor metics 
+Keep track of your Internet connection and get pretty graphs like these:
+
+![Downstream Short Term Report](./img/downstream-short-term.png) ![Event Log grabbed from the modem](./img/event-log.png)
 
 
 ## What's Splunk?
