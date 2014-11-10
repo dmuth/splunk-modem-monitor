@@ -1,0 +1,28 @@
+<nav>
+
+  <view name="downstream_short_term" default="true" />
+  <view name="upstream_short_term" />
+
+  <collection label="Others">
+    <view source="unclassified" />
+  </collection>
+  <!--
+  -->
+
+  <collection label="Extra">
+
+    <collection label="All Views">
+       <view source="all" />
+    </collection>
+
+    <collection label="Reports">
+      <saved name="Short Term Search" />
+      <saved name="Long Term Search" />
+      <view name="reports" />
+    </collection>
+  
+    <view name="search" />
+
+  </collection>
+  
+</nav>
