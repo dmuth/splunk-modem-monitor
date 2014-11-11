@@ -19,7 +19,7 @@ fi
 
 SPLUNK_ROOT=$1
 TARGET=${SPLUNK_ROOT}/etc/apps
-FILENAME="Modem-Monitor"
+FILENAME="Cable_Modem_Monitor"
 
 #
 # Change into the parent directory of this script
