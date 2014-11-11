@@ -28,7 +28,7 @@ that has already been created, simply remove the references to Vagrant.
 - Install PHP with `sudo apt-get update && sudo apt-get -y install php5-cli php5-curl`
 - Install Splunk with `sudo /vagrant/bin/install_splunk.sh`
     - Agree to the license and then watch Spkunk start
-    - Not that you'll need a Splunk .deb file named `splunk.deb` in the current directory
+    - **Note:** you'll need a Splunk .deb file named `splunk.deb` in the current directory
 - Deploy this app:
 	- `sudo /vagrant/bin/deploy_symlink.sh $SPLUNK_ROOT` if you'd like to have a symlink pointing to this directory
 	- `sudo /vagrant/bin/deploy.sh $SPLUNK_ROOT` if you'd like to have this directory copied into $SPLUNK_HOME/Network-Monitor/
