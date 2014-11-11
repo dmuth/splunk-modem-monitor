@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# "Deploy" this app by creating a symlink from $SPLUNK_HOME/etc/apps/Network-Monitor
+# "Deploy" this app by creating a symlink in $SPLUNK_HOME/etc/apps/
 #
 
 #set -x # Debugging
