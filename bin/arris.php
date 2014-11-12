@@ -455,7 +455,7 @@ function truncateEventLogLines($lines, $last_line) {
 	//
 	// Turn our lines into an array and remove the last (empty) element.
 	//
-	$lines_array = split("\n", $lines);
+	$lines_array = preg_split("/\n/", $lines);
 	array_pop($lines_array);
 
 	foreach ($lines_array as $key => $value) {
