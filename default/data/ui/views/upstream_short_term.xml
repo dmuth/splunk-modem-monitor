@@ -1,11 +1,30 @@
-<dashboard>
+<form>
   <label>Upstream (Short-term)</label>
+  <fieldset submitButton="false">
+    <input type="time" token="timespan" searchWhenChanged="true">
+      <label>Time Period</label>
+      <default>
+        <earliest>-60m@m</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="span" searchWhenChanged="true">
+      <label>Chart Timespan</label>
+      <choice value="15s">15s</choice>
+      <choice value="5m">5m</choice>
+      <choice value="1h">1h</choice>
+      <choice value="1d">1d</choice>
+      <default>15s</default>
+    </input>
+  </fieldset>
   <row>
     <panel>
       <chart>
         <title>Frequencies in Mhz</title>
         <search>
-          <query>index=main earliest=-10m type=upstream |timechart span=15s avg(freq) by name</query>
+          <query>index=main type=upstream |timechart span=$span$ avg(freq) by name</query>
+          <earliest>$timespan.earliest$</earliest>
+          <latest>$timespan.latest$</latest>
         </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
@@ -37,7 +56,9 @@
       <chart>
         <title>Power in dBmV</title>
         <search>
-          <query>index=main earliest=-10m type=upstream |timechart span=15s avg(power) by name</query>
+          <query>index=main type=upstream |timechart span=$span$ avg(power) by name</query>
+          <earliest>$timespan.earliest$</earliest>
+          <latest>$timespan.latest$</latest>
         </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
@@ -69,7 +90,9 @@
       <chart>
         <title>Symbol Rate in kSym/s</title>
         <search>
-          <query>index=main earliest=-10m type=upstream |timechart span=15s avg(symbol_rate) by name</query>
+          <query>index=main type=upstream |timechart span=$span$ avg(symbol_rate) by name</query>
+          <earliest>$timespan.earliest$</earliest>
+          <latest>$timespan.latest$</latest>
         </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
@@ -95,4 +118,4 @@
       </chart>
     </panel>
   </row>
-</dashboard>
+</form>
