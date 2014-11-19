@@ -1,9 +1,7 @@
 <nav>
 
   <view name="downstream_short_term" default="true" />
-  <view name="downstream_rt" />
   <view name="upstream_short_term" />
-  <view name="downstream_long_term"  />
   <view name="upstream_long_term" />
   <view name="event_log" />
   
