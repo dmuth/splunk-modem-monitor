@@ -1,5 +1,5 @@
 <form>
-  <label>Downstream (short-term)</label>
+  <label>Downstream Cable Modem Stats</label>
   <fieldset submitButton="false">
     <input type="time" token="timespan" searchWhenChanged="true">
       <label>Time Period</label>
