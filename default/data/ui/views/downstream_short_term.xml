@@ -1,11 +1,30 @@
-<dashboard>
+<form>
   <label>Downstream (short-term)</label>
+  <fieldset submitButton="false">
+    <input type="time" token="timespan" searchWhenChanged="true">
+      <label>Time Period</label>
+      <default>
+        <earliest>-60m@m</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="span" searchWhenChanged="true">
+      <label>Chart Timespan</label>
+      <choice value="15s">15s</choice>
+      <choice value="5m">5m</choice>
+      <choice value="1h">1h</choice>
+      <choice value="1d">1d</choice>
+      <default>15s</default>
+    </input>
+  </fieldset>
   <row>
     <panel>
       <chart>
         <title>Frequencies in Mhz</title>
         <search>
-          <query>index=main earliest=-10m type=downstream |timechart span=15s avg(freq) by name</query>
+          <query>index=main type=downstream |timechart span=$span$ avg(freq) by name</query>
+          <earliest>$timespan.earliest$</earliest>
+          <latest>$timespan.latest$</latest>
         </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
@@ -35,7 +54,9 @@
       <chart>
         <title>Power in dBmV</title>
         <search>
-          <query>index=main earliest=-10m type=downstream |timechart span=15s avg(power) by name</query>
+          <query>index=main type=downstream |timechart span=$span$ avg(power) by name</query>
+          <earliest>$timespan.earliest$</earliest>
+          <latest>$timespan.latest$</latest>
         </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
@@ -65,7 +86,9 @@
       <chart>
         <title>Signal to Noise Ratio in dB</title>
         <search>
-          <query>index=main earliest=-10m type=downstream |timechart span=15s avg(snr) by name</query>
+          <query>index=main type=downstream |timechart span=$span$ avg(snr) by name</query>
+          <earliest>$timespan.earliest$</earliest>
+          <latest>$timespan.latest$</latest>
         </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
@@ -97,8 +120,9 @@
       <chart>
         <title>Octets per Second</title>
         <search>
-          <query>index=main earliest=-10m type=downstream  |sort name, _time |autoregress name as name_prev |delta octets as octets_delta |eval octets_diff=if(name == name_prev, octets_delta, null()) |timechart span=15s per_second(octets_diff) by name</query>
-          <earliest>0</earliest>
+          <query>index=main type=downstream  |sort name, _time |autoregress name as name_prev |delta octets as octets_delta |eval octets_diff=if(name == name_prev, octets_delta, null()) |timechart span=$span$ per_second(octets_diff) by name</query>
+          <earliest>$timespan.earliest$</earliest>
+          <latest>$timespan.latest$</latest>
         </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
@@ -130,7 +154,9 @@
       <chart>
         <title>Uncorrectable Errors per Second</title>
         <search>
-          <query>index=main earliest=-10m type=downstream  |sort name, _time |autoregress name as name_prev |delta uncorrectables as uncorrectables_delta |eval uncorrectables_diff=if(name == name_prev, uncorrectables_delta, null()) | timechart span=15s per_second(uncorrectables_diff) by name</query>
+          <query>index=main type=downstream  |sort name, _time |autoregress name as name_prev |delta uncorrectables as uncorrectables_delta |eval uncorrectables_diff=if(name == name_prev, uncorrectables_delta, null()) | timechart span=$span$ per_second(uncorrectables_diff) by name</query>
+          <earliest>$timespan.earliest$</earliest>
+          <latest>$timespan.latest$</latest>
         </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
@@ -160,7 +186,9 @@
       <chart>
         <title>Corrected Errors per Second</title>
         <search>
-          <query>index=main earliest=-10m type=downstream  |sort name, _time |autoregress name as name_prev |delta correcteds as correcteds_delta |eval correcteds_diff=if(name == name_prev, correcteds_delta, null()) |timechart span=15s per_second(correcteds_diff) by name</query>
+          <query>index=main type=downstream  |sort name, _time |autoregress name as name_prev |delta correcteds as correcteds_delta |eval correcteds_diff=if(name == name_prev, correcteds_delta, null()) |timechart span=$span$ per_second(correcteds_diff) by name</query>
+          <earliest>$timespan.earliest$</earliest>
+          <latest>$timespan.latest$</latest>
         </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
@@ -187,4 +215,4 @@
       </chart>
     </panel>
   </row>
-</dashboard>
+</form>
