@@ -120,7 +120,7 @@
       <chart>
         <title>Octets per Second</title>
         <search>
-          <query>index=main type=downstream  |sort name, _time |autoregress name as name_prev |delta octets as octets_delta |eval octets_diff=if(name == name_prev, octets_delta, null()) |timechart span=$span$ per_second(octets_diff) by name</query>
+          <query>index=main type=downstream  |sort 0 name, _time |autoregress name as name_prev |delta octets as octets_delta |eval octets_diff=if(name == name_prev, octets_delta, null()) |timechart span=$span$ per_second(octets_diff) by name</query>
           <earliest>$timespan.earliest$</earliest>
           <latest>$timespan.latest$</latest>
         </search>
@@ -154,7 +154,7 @@
       <chart>
         <title>Uncorrectable Errors per Second</title>
         <search>
-          <query>index=main type=downstream  |sort name, _time |autoregress name as name_prev |delta uncorrectables as uncorrectables_delta |eval uncorrectables_diff=if(name == name_prev, uncorrectables_delta, null()) | timechart span=$span$ per_second(uncorrectables_diff) by name</query>
+          <query>index=main type=downstream  |sort 0 name, _time |autoregress name as name_prev |delta uncorrectables as uncorrectables_delta |eval uncorrectables_diff=if(name == name_prev, uncorrectables_delta, null()) | timechart span=$span$ per_second(uncorrectables_diff) by name</query>
           <earliest>$timespan.earliest$</earliest>
           <latest>$timespan.latest$</latest>
         </search>
@@ -186,7 +186,7 @@
       <chart>
         <title>Corrected Errors per Second</title>
         <search>
-          <query>index=main type=downstream  |sort name, _time |autoregress name as name_prev |delta correcteds as correcteds_delta |eval correcteds_diff=if(name == name_prev, correcteds_delta, null()) |timechart span=$span$ per_second(correcteds_diff) by name</query>
+          <query>index=main type=downstream  |sort 0 name, _time |autoregress name as name_prev |delta correcteds as correcteds_delta |eval correcteds_diff=if(name == name_prev, correcteds_delta, null()) |timechart span=$span$ per_second(correcteds_diff) by name</query>
           <earliest>$timespan.earliest$</earliest>
           <latest>$timespan.latest$</latest>
         </search>
